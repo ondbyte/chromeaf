@@ -1,0 +1,5 @@
+# Build tree (sources, caches, outputs). build/args/ is tracked.
+/build/*
+!/build/args/
+/build/args/local.gn
+__pycache__/

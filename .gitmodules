@@ -1,0 +1,6 @@
+[submodule "ungoogled-chromium"]
+	path = ungoogled-chromium
+	url = https://github.com/ungoogled-software/ungoogled-chromium.git
+[submodule "platform/portablelinux"]
+	path = platform/portablelinux
+	url = https://github.com/ungoogled-software/ungoogled-chromium-portablelinux.git

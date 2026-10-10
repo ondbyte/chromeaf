@@ -1,0 +1,9 @@
+# chromeaf Android GN args (experimental). target_cpu is set from
+# ANDROID_CPU by scripts/chromeaf.sh.
+target_os = "android"
+is_debug = false
+is_component_build = false
+symbol_level = 0
+blink_symbol_level = 0
+proprietary_codecs = true
+ffmpeg_branding = "Chrome"

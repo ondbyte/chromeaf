@@ -1,0 +1,8 @@
+# chromeaf Linux GN args, appended after ungoogled-chromium's flags.gn and
+# portablelinux's flags.linux.gn (later values win). Put machine-specific
+# overrides in build/args/local.gn (git-ignored).
+#
+# Nothing here is required by chromeaf itself: the MCP server is always
+# compiled in and only switched on at runtime with --chromeaf-mcp-port.
+
+is_component_build = false

@@ -1,0 +1,6 @@
+# Faster incremental builds for working on chromeaf (BUILD_TYPE=dev).
+# Not for distribution.
+is_official_build = false
+is_component_build = true
+symbol_level = 1
+dcheck_always_on = true

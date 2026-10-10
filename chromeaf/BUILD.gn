@@ -1,0 +1,135 @@
+# Copyright 2026 The chromeaf Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+#
+# chromeaf: an MCP-over-HTTP control server built into the browser process.
+#
+# Upstream hooks (see //patches in the chromeaf repo):
+#   //chrome/browser:core        depends on :browser_public and calls
+#                                CreateChromeafMainExtraParts().
+#   //chrome/browser/ui:ui       links :browser (which needs //chrome/browser/ui
+#                                headers, hence allow_circular_includes_from).
+#   //chrome/renderer:renderer   depends on :renderer and creates PageAgent.
+
+import("//build/config/ui.gni")
+import("//testing/test.gni")
+
+# Dependency-light pieces: protocol, tool registry and the mouse path model.
+source_set("mcp_core") {
+  sources = [
+    "browser/input/human_mouse_path.cc",
+    "browser/input/human_mouse_path.h",
+    "browser/mcp/mcp_protocol.cc",
+    "browser/mcp/mcp_protocol.h",
+    "browser/mcp/tool_registry.cc",
+    "browser/mcp/tool_registry.h",
+  ]
+  public_deps = [
+    "//base",
+    "//ui/gfx/geometry",
+  ]
+}
+
+# The only header upstream code includes.
+source_set("browser_public") {
+  sources = [ "browser/chromeaf_main_parts.h" ]
+}
+
+source_set("browser") {
+  sources = [
+    "browser/chromeaf_main_parts.cc",
+    "browser/input/input_injector.cc",
+    "browser/input/input_injector.h",
+    "browser/mcp/mcp_http_server.cc",
+    "browser/mcp/mcp_http_server.h",
+    "browser/page_agent_host.cc",
+    "browser/page_agent_host.h",
+    "browser/tabs/tab_lists.h",
+    "browser/tools/input_tools.cc",
+    "browser/tools/page_tools.cc",
+    "browser/tools/screenshot_tool.cc",
+    "browser/tools/tab_tools.cc",
+    "browser/tools/tool_util.cc",
+    "browser/tools/tool_util.h",
+    "browser/tools/tools.h",
+  ]
+
+  public_deps = [ ":browser_public" ]
+
+  deps = [
+    ":mcp_core",
+    "//base",
+    "//cc/paint",
+    "//chrome/browser:main_extra_parts",
+    "//chrome/browser/tab_list",
+    "//chrome/browser/ui/browser_window",
+    "//chromeaf/common:mojo_bindings",
+    "//chromeaf/common:switches",
+    "//components/input",
+    "//components/tabs:public",
+    "//components/url_formatter",
+    "//content/public/browser",
+    "//mojo/public/cpp/bindings",
+    "//net",
+    "//skia",
+    "//third_party/blink/public/common",
+    "//ui/base",
+    "//ui/events",
+    "//ui/events:dom_keycode_converter",
+    "//ui/events:events_base",
+    "//ui/gfx",
+    "//ui/gfx/codec",
+    "//ui/gfx/geometry",
+    "//url",
+  ]
+
+  if (is_android) {
+    sources += [ "browser/tabs/tab_lists_android.cc" ]
+    deps += [ "//chrome/browser/ui/android/tab_model" ]
+  } else {
+    sources += [ "browser/tabs/tab_lists_desktop.cc" ]
+  }
+
+  if (use_aura) {
+    deps += [ "//ui/aura" ]
+  }
+
+  if (toolkit_views && use_aura) {
+    sources += [
+      "browser/ui/cursor_overlay.cc",
+      "browser/ui/cursor_overlay.h",
+    ]
+    deps += [ "//ui/views" ]
+  }
+}
+
+source_set("renderer") {
+  sources = [
+    "renderer/page_agent.cc",
+    "renderer/page_agent.h",
+  ]
+  deps = [
+    "//base",
+    "//chromeaf/common:mojo_bindings",
+    "//content/public/renderer",
+    "//mojo/public/cpp/bindings",
+    "//third_party/blink/public:blink",
+    "//third_party/blink/public/common",
+    "//ui/gfx/geometry",
+    "//url",
+  ]
+}
+
+test("chromeaf_unittests") {
+  sources = [
+    "test/human_mouse_path_unittest.cc",
+    "test/mcp_protocol_unittest.cc",
+  ]
+  deps = [
+    ":mcp_core",
+    "//base",
+    "//base/test:run_all_unittests",
+    "//base/test:test_support",
+    "//testing/gtest",
+  ]
+}

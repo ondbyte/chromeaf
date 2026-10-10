@@ -1,0 +1,52 @@
+// Copyright 2026 The chromeaf Authors
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+module chromeaf.mojom;
+
+import "ui/gfx/geometry/mojom/geometry.mojom";
+
+// An element a user could plausibly click, as found in the main frame (and
+// same-process child frames) of a page.
+struct Clickable {
+  // Index into the agent's per-document clickable list. Valid until the next
+  // GetClickables() call or navigation.
+  int32 id;
+  string tag;
+  // ARIA role attribute, or empty.
+  string role;
+  // Visible text, aria-label, title, alt, value or placeholder (abridged).
+  string text;
+  // href for links, empty otherwise.
+  string href;
+  // type attribute for <input>/<button>, empty otherwise.
+  string type;
+  // DOM id attribute, or empty.
+  string dom_id;
+  // Bounds in DIPs relative to the tab's viewport (same space used for
+  // synthetic mouse events).
+  gfx.mojom.Rect bounds;
+  // Whether any part of the element is inside the visible viewport.
+  bool in_viewport;
+};
+
+// Renderer-side page inspector for the main frame. Implemented purely on top
+// of Blink's public C++ API; nothing is injected into the page's JS world and
+// nothing goes through DevTools.
+interface PageAgent {
+  // Serialized markup of the document. |truncated| is set when the markup was
+  // longer than |max_bytes|.
+  GetHtml(uint32 max_bytes) => (string html, bool truncated);
+
+  // Visible text of the frame tree.
+  GetText(uint32 max_chars) => (string text);
+
+  // Collects clickable elements. Off-screen elements are only included when
+  // |include_offscreen| is set. |viewport| is the viewport size in DIPs.
+  GetClickables(bool include_offscreen, uint32 max_count)
+      => (array<Clickable> items, gfx.mojom.Size viewport);
+
+  // Fresh bounds (DIPs, viewport-relative) of a clickable returned by the last
+  // GetClickables() call, or null if it is gone.
+  GetClickableBounds(int32 id) => (gfx.mojom.Rect? bounds);
+};

@@ -1,0 +1,45 @@
+--- a/chrome/browser/chrome_browser_main.cc
++++ b/chrome/browser/chrome_browser_main.cc
+@@ -93,6 +93,7 @@
+ #include "chrome/common/profiler/thread_profiler_configuration.h"
+ #include "chrome/grit/branded_strings.h"
+ #include "chrome/installer/util/google_update_settings.h"
++#include "chromeaf/browser/chromeaf_main_parts.h"
+ #include "components/color/color_mixers.h"
+ #include "components/device_event_log/device_event_log.h"
+ #include "components/embedder_support/origin_trials/component_updater_utils.h"
+@@ -842,6 +843,9 @@
+ 
+   main_parts->AddParts(std::make_unique<ChromeBrowserMainExtraPartsMemory>());
+ 
++  // chromeaf: MCP control server (only active with --chromeaf-mcp-port).
++  main_parts->AddParts(chromeaf::CreateChromeafMainExtraParts());
++
+   chrome::AddMetricsExtraParts(main_parts.get());
+ 
+   main_parts->AddParts(
+--- a/chrome/browser/BUILD.gn
++++ b/chrome/browser/BUILD.gn
+@@ -879,6 +879,7 @@
+   }
+ 
+   deps = [
++    "//chromeaf:browser_public",
+     ":active_use_util",
+     ":after_startup_task_utils",
+     ":bad_message",
+--- a/chrome/browser/ui/BUILD.gn
++++ b/chrome/browser/ui/BUILD.gn
+@@ -1088,7 +1088,12 @@
+     "//ui/webui",
+   ]
+ 
++  deps += [ "//chromeaf:browser" ]
++
+   allow_circular_includes_from = [
++    # chromeaf uses Browser/tab strip headers from this target.
++    "//chromeaf:browser",
++
+     # page_load_metrics's :impl includes headers from //chrome/browser/ui that
+     # can't be split out yet.
+     "//chrome/browser/page_load_metrics:impl",
