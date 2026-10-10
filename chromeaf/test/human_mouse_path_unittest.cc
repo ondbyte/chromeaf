@@ -43,7 +43,8 @@ TEST(HumanMousePathTest, EndsExactlyAtTargetWithIncreasingTime) {
     std::vector<MousePathPoint> path = GenerateHumanMousePath(
         from, to, HumanMousePathOptions(), SeededRandom(seed));
     ASSERT_GT(path.size(), 5u) << seed;
-    EXPECT_EQ(to, path.back().position) << seed;
+    EXPECT_EQ(to.x(), path.back().position.x()) << seed;
+    EXPECT_EQ(to.y(), path.back().position.y()) << seed;
     base::TimeDelta previous;
     for (const MousePathPoint& point : path) {
       EXPECT_GT(point.time, previous) << seed;
@@ -111,7 +112,8 @@ TEST(HumanMousePathTest, TinyMoveIsSinglePoint) {
       gfx::PointF(5, 5), gfx::PointF(5.2f, 5.1f), HumanMousePathOptions(),
       SeededRandom(3));
   ASSERT_EQ(1u, path.size());
-  EXPECT_EQ(gfx::PointF(5.2f, 5.1f), path[0].position);
+  EXPECT_FLOAT_EQ(5.2f, path[0].position.x());
+  EXPECT_FLOAT_EQ(5.1f, path[0].position.y());
 }
 
 }  // namespace

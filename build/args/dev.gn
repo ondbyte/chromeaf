@@ -4,3 +4,5 @@ is_official_build = false
 is_component_build = true
 symbol_level = 1
 dcheck_always_on = true
+# The pruned source tarball does not ship the mold linker; use lld.
+use_mold = false

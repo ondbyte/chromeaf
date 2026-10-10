@@ -68,7 +68,7 @@ cmd_submodules() {
 
 cmd_check_deps() {
   local missing=()
-  local tools=(python3 git ninja node npm gperf go clang-format rsync xz)
+  local tools=(python3 git ninja node npm tsc gperf go clang-format xz)
   for t in "${tools[@]}"; do
     command -v "$t" >/dev/null 2>&1 || missing+=("$t")
   done
@@ -95,7 +95,12 @@ cmd_depot_tools() {
 # Copies the chromeaf overlay into a source tree.
 sync_overlay() {
   local src="$1"
-  rsync -a --delete "${ROOT}/chromeaf/" "${src}/chromeaf/"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --delete "${ROOT}/chromeaf/" "${src}/chromeaf/"
+  else
+    rm -rf "${src}/chromeaf"
+    cp -a "${ROOT}/chromeaf" "${src}/chromeaf"
+  fi
 }
 
 apply_chromeaf_patches() {
@@ -154,6 +159,14 @@ linux_fix_tool_downloading() {
     "${SRC}/tools/rust/build_rust.py"
 }
 
+link_host_tool() {
+  local tool="$1" dest="$2" path
+  path="$(command -v "${tool}")" ||
+    die "host tool '${tool}' not found (see 'make check-deps' or use 'make docker-linux')"
+  mkdir -p "$(dirname "${dest}")"
+  ln -sf "${path}" "${dest}"
+}
+
 linux_toolchain() {
   if [[ "$(host_cpu)" == x64 ]]; then
     python3 "${SRC}/tools/rust/update_rust.py"
@@ -175,14 +188,12 @@ linux_toolchain() {
   fi
 
   # Host tools the pruned tree expects at fixed locations.
-  mkdir -p "${SRC}/third_party/node/linux/node-linux-x64/bin" \
-    "${SRC}/third_party/gperf/cipd/bin" \
-    "${SRC}/third_party/dawn/tools/golang/linux-amd64/bin" \
-    "${SRC}/buildtools/linux64-format"
-  ln -sf "$(command -v node)" "${SRC}/third_party/node/linux/node-linux-x64/bin/node"
-  ln -sf "$(command -v gperf)" "${SRC}/third_party/gperf/cipd/bin/gperf"
-  ln -sf "$(command -v go)" "${SRC}/third_party/dawn/tools/golang/linux-amd64/bin/go"
-  ln -sf "$(command -v clang-format)" "${SRC}/buildtools/linux64-format/clang-format"
+  link_host_tool node "${SRC}/third_party/node/linux/node-linux-x64/bin/node"
+  link_host_tool gperf "${SRC}/third_party/gperf/cipd/bin/gperf"
+  link_host_tool go "${SRC}/third_party/dawn/tools/golang/linux-amd64/bin/go"
+  link_host_tool clang-format "${SRC}/buildtools/linux64-format/clang-format"
+  [[ -d /usr/lib/node_modules/esbuild ]] ||
+    die "esbuild not found: npm -g install esbuild (or use 'make docker-linux')"
   rm -rf "${SRC}/third_party/devtools-frontend/src/node_modules/esbuild"
   ln -s /usr/lib/node_modules/esbuild \
     "${SRC}/third_party/devtools-frontend/src/node_modules/esbuild"
@@ -257,9 +268,30 @@ PY
   (cd "${SRC}" && "${OUT}/gn" gen "${OUT}" --fail-on-unused-args)
 }
 
+# The source tarball omits the fonts every //base/test-based test binary
+# carries as runtime data. Fetch them from the GCS object pinned in DEPS.
+linux_test_fonts() {
+  python3 - "${SRC}" <<'PY'
+import hashlib, io, re, sys, tarfile, urllib.request
+src = sys.argv[1]
+deps = open(f"{src}/DEPS").read()
+m = re.search(r"'src/third_party/test_fonts/test_fonts':\s*\{.*?'bucket':\s*'([^']+)'.*?"
+              r"'object_name':\s*'([^']+)'.*?'sha256sum':\s*'([^']+)'", deps, re.S)
+bucket, obj, sha = m.groups()
+data = urllib.request.urlopen(
+    f"https://commondatastorage.googleapis.com/{bucket}/{obj}").read()
+assert hashlib.sha256(data).hexdigest() == sha, "test_fonts hash mismatch"
+tarfile.open(fileobj=io.BytesIO(data)).extractall(
+    f"{src}/third_party/test_fonts/test_fonts", filter="data")
+PY
+}
+
 cmd_build() {
   [[ -f "${OUT}/build.ninja" ]] || cmd_gn
   sync_overlay "${SRC}"
+  if [[ " ${TARGETS} " == *_unittests* ]]; then
+    once "${SRC}/.chromeaf-test-fonts" linux_test_fonts
+  fi
   export_toolchain_env
   # shellcheck disable=SC2086
   ninja -C "${OUT}" -j "${JOBS}" ${TARGETS}
