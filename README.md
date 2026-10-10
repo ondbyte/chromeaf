@@ -49,8 +49,9 @@ Pinned versions: Chromium **155.0.8059.39**, ungoogled-chromium
 
 A full Chromium build needs roughly 100 GB of disk, 16 GB+ RAM and several
 hours of CPU. The host packages are those in
-`platform/portablelinux/docker/build.Dockerfile` (clang, ninja, node + global
-`esbuild`, gperf, go, …).
+`platform/portablelinux/docker/build.Dockerfile` (clang, ninja, node with
+global `typescript` and `esbuild`, gperf, go, clang-format, …); `make
+check-deps` reports what is missing.
 
 ```sh
 git clone --recursive https://github.com/ondbyte/chromeaf && cd chromeaf
