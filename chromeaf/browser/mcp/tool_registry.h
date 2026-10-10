@@ -68,6 +68,8 @@ struct ToolDefinition {
 class SchemaBuilder {
  public:
   SchemaBuilder();
+  SchemaBuilder(SchemaBuilder&&);
+  SchemaBuilder& operator=(SchemaBuilder&&);
   ~SchemaBuilder();
 
   SchemaBuilder& Integer(std::string_view name,

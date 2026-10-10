@@ -637,7 +637,6 @@ void InputInjector::PressKey(std::string_view chord, DoneCallback done) {
   }
 
   std::vector<KeySpec> modifier_keys;
-  int modifiers = 0;
   for (size_t i = 0; i + 1 < parts.size(); ++i) {
     std::optional<KeySpec> spec = KeySpecForName(parts[i]);
     int modifier = spec ? ModifierForKey(spec->key) : 0;
@@ -646,7 +645,6 @@ void InputInjector::PressKey(std::string_view chord, DoneCallback done) {
       return;
     }
     modifier_keys.push_back(*spec);
-    modifiers |= modifier;
   }
   std::optional<KeySpec> key = KeySpecForName(parts.back());
   if (!key) {

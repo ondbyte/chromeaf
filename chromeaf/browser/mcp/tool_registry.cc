@@ -89,6 +89,8 @@ ToolDefinition::~ToolDefinition() = default;
 // SchemaBuilder --------------------------------------------------------------
 
 SchemaBuilder::SchemaBuilder() = default;
+SchemaBuilder::SchemaBuilder(SchemaBuilder&&) = default;
+SchemaBuilder& SchemaBuilder::operator=(SchemaBuilder&&) = default;
 SchemaBuilder::~SchemaBuilder() = default;
 
 SchemaBuilder& SchemaBuilder::Add(std::string_view name,

@@ -13,6 +13,7 @@
 #include "base/strings/strcat.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/task/thread_pool.h"
+#include "components/viz/common/frame_sinks/copy_output_result.h"
 #include "chromeaf/browser/mcp/tool_registry.h"
 #include "chromeaf/browser/tools/tool_util.h"
 #include "chromeaf/browser/tools/tools.h"
@@ -24,6 +25,7 @@
 #include "ui/gfx/codec/png_codec.h"
 #include "ui/gfx/geometry/rect.h"
 #include "ui/gfx/geometry/rect_conversions.h"
+#include "ui/gfx/geometry/rect_f.h"
 #include "ui/gfx/geometry/size.h"
 
 namespace chromeaf {

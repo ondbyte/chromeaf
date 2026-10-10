@@ -68,6 +68,7 @@ source_set("browser") {
     "//components/input",
     "//components/tabs:public",
     "//components/url_formatter",
+    "//components/viz/common",
     "//content/public/browser",
     "//mojo/public/cpp/bindings",
     "//net",
