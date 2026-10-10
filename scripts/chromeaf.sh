@@ -68,7 +68,7 @@ cmd_submodules() {
 
 cmd_check_deps() {
   local missing=()
-  local tools=(python3 git ninja node npm tsc gperf go clang-format xz)
+  local tools=(python3 git ninja node npm tsc esbuild gperf go clang-format xz)
   for t in "${tools[@]}"; do
     command -v "$t" >/dev/null 2>&1 || missing+=("$t")
   done
